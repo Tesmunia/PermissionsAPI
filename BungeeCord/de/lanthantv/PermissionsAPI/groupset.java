@@ -74,6 +74,13 @@ public class groupset extends Command{
 						if(group != null){
 							MySQL.update("UPDATE groups SET gruppe='" + group + "' WHERE uuid='" + uuid.toString() + "'");
 							commandSender.sendMessage("§aDie Gruppe von §e" + p + " §awurde erfolgreich aktualisiert.");
+							if(PermissionsAPI.time.containsValue(uuid)){
+
+								PermissionsAPI.time.remove(uuid);
+								PermissionsAPI.cache.remove(PermissionsAPI.cache.get(uuid));
+								PermissionsAPI.getGroup(uuid);
+
+							}
 						}else{
 
 
