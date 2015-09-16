@@ -3,9 +3,7 @@ package de.lanthantv.PermissionsAPI;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import net.md_5.bungee.BungeeCord;
 import net.md_5.bungee.api.event.LoginEvent;
@@ -15,15 +13,11 @@ import net.md_5.bungee.event.EventHandler;
 
 public class PermissionsAPI extends Plugin implements Listener{
 
-	public static PermissionsAPI instance;
 
-	public static HashMap<UUID, Groups> cache = new HashMap<>();
-	public static HashMap<Long, UUID> time = new HashMap<>();
 
 	public void onEnable(){
 
-		instance = this;
-
+		
 		BungeeCord.getInstance().getPluginManager().registerListener(this, this);
 		BungeeCord.getInstance().getPluginManager().registerCommand(this, new groupset("groupset"));
 		BungeeCord.getInstance().getPluginManager().registerCommand(this, new groupset("setgroup"));
@@ -32,7 +26,7 @@ public class PermissionsAPI extends Plugin implements Listener{
 		
 		MySQL.connect();
 		
-		updateCache();
+		
 
 		MySQL.update("CREATE TABLE IF NOT EXISTS groups (id INT AUTO_INCREMENT PRIMARY KEY, uuid VARCHAR(255), name VARCHAR(255), gruppe VARCHAR(255))");
 		MySQL.update("CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, uuid VARCHAR(255), name VARCHAR(255), coins INT(255), tokens INT(255), team VARCHAR(255), premium VARCHAR(255), maintenance VARCHAR(255))");
@@ -49,13 +43,7 @@ public class PermissionsAPI extends Plugin implements Listener{
 	@EventHandler
 	public static void onJoin(LoginEvent event){
 
-		if(time.containsValue(event.getConnection().getUniqueId())){
-
-			time.remove(event.getConnection().getUniqueId());
-			cache.remove(cache.get(event.getConnection().getUniqueId()));
-			getGroup(event.getConnection().getUniqueId());
-
-		}
+		
 
 		if(isRegistered(event.getConnection().getUniqueId())){
 
@@ -132,98 +120,59 @@ public class PermissionsAPI extends Plugin implements Listener{
 	public static Groups getGroup(UUID uuid){
 
 
-		if(cache.containsKey(uuid)){
+		try {
 
-			return cache.get(uuid);
+			PreparedStatement preparedStatement = MySQL.con.prepareStatement("SELECT gruppe FROM groups WHERE uuid='" + uuid.toString() + "'");
+			final ResultSet set = preparedStatement.executeQuery();
+			if (set.next()) {
+				if(set.getString(1).equalsIgnoreCase("admin")){
 
-		}else{
+					return Groups.ADMIN;
 
-			try {
+				}else if(set.getString(1).equalsIgnoreCase("developer")){
 
-				PreparedStatement preparedStatement = MySQL.con.prepareStatement("SELECT gruppe FROM groups WHERE uuid='" + uuid.toString() + "'");
-				final ResultSet set = preparedStatement.executeQuery();
-				if (set.next()) {
-					if(set.getString(1).equalsIgnoreCase("admin")){
+					return Groups.DEVELOPER;
 
-						cache.put(uuid, Groups.ADMIN);
-						time.put(System.nanoTime(), uuid);
+				}else if(set.getString(1).equalsIgnoreCase("moderator")){
 
-						return Groups.ADMIN;
+					return Groups.MODERATOR;
 
-					}else if(set.getString(1).equalsIgnoreCase("developer")){
+				}else if(set.getString(1).equalsIgnoreCase("bt")){
 
-						cache.put(uuid, Groups.DEVELOPER);
-						time.put(System.nanoTime(), uuid);
-						return Groups.DEVELOPER;
+					return Groups.BT;
 
-					}else if(set.getString(1).equalsIgnoreCase("moderator")){
-						cache.put(uuid, Groups.MODERATOR);
-						time.put(System.nanoTime(), uuid);
-						return Groups.MODERATOR;
+				}else if(set.getString(1).equalsIgnoreCase("youtuber")){
 
-					}else if(set.getString(1).equalsIgnoreCase("bt")){
-						cache.put(uuid, Groups.BT);
-						time.put(System.nanoTime(), uuid);
-						return Groups.BT;
+					return Groups.YouTuber;
 
-					}else if(set.getString(1).equalsIgnoreCase("youtuber")){
-						cache.put(uuid, Groups.YouTuber);
-						time.put(System.nanoTime(), uuid);
-						return Groups.YouTuber;
+				}else if(set.getString(1).equalsIgnoreCase("premium")){
 
-					}else if(set.getString(1).equalsIgnoreCase("premium")){
-						cache.put(uuid, Groups.PREMIUM);
-						time.put(System.nanoTime(), uuid);
-						return Groups.PREMIUM;
+					return Groups.PREMIUM;
 
-					}else if(set.getString(1).equalsIgnoreCase("spieler")){
-						cache.put(uuid, Groups.USER);
-						time.put(System.nanoTime(), uuid);
-						return Groups.USER;
+				}else if(set.getString(1).equalsIgnoreCase("spieler")){
 
-					}else {
-						return Groups.ERROR;
+					return Groups.USER;
 
-					}
+				}else {
+					return Groups.ERROR;
+
 				}
 			}
-			catch (SQLException ex) {
-
-
-			}
-			return null;
-
-
+		}
+		catch (SQLException ex) {
 
 
 		}
-	}
+		return null;
 
-
-	public static void updateCache(){
-
-
-		BungeeCord.getInstance().getScheduler().schedule(PermissionsAPI.instance, ()->{
-
-			for(long time : time.keySet()){
-
-				if((System.nanoTime() - time) > TimeUnit.NANOSECONDS.convert(3, TimeUnit.MINUTES)){
-
-					UUID uuid = PermissionsAPI.time.get(time);
-
-					cache.remove(cache.get(uuid));
-					PermissionsAPI.time.remove(uuid);
-
-				}
-
-			}
-
-		}, 60, TimeUnit.SECONDS);
 
 
 
 
 	}
+
+
+	
 
 
 }

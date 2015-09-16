@@ -66,8 +66,8 @@ public class MySQL {
 
 
 	public static ResultSet query(String qry){
+		
 		ResultSet rs = null;
-
 		try {
 			Statement stmt = con.createStatement();
 			rs = stmt.executeQuery(qry);
