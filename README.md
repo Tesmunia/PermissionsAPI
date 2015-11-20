@@ -1,4 +1,5 @@
 # PermissionsAPI
+<<<<<<< HEAD
 Implement it in your BungeeCord/Spigot Plugin!
 
 Don't forget to add depend: [PermissionsAPI] to your plugin.yml File
@@ -14,3 +15,5 @@ if(PermissionsAPI.getGroup(UUIDofPlayer) == Groups.ADMIN){
 }
 
 if you get the GroupType Groups.Error there is something wrong with MySQL
+=======
+>>>>>>> 2024cfe7a716cc4c3cd888af8810392b2daa4a79
